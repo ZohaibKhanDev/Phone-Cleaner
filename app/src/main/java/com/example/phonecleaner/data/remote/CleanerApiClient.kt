@@ -40,7 +40,6 @@ object CleanerApiClient {
             }
         }
 
-
         install(HttpTimeout) {
             requestTimeoutMillis = TIMEOUT
             socketTimeoutMillis = TIMEOUT
@@ -57,7 +56,6 @@ object CleanerApiClient {
                     append("Authorization", "Bearer $BEARER_TOKEN")
                 }
             }
-
             return if (response.status.isSuccess()) {
                 println("Storage cleanup succeeded.")
                 true
