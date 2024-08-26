@@ -39,11 +39,9 @@ fun HomeScreen() {
             val error = (state as ResultState.Error).error
             Text(text = error.toString())
         }
-
         ResultState.Loading -> {
             isLoading = true
         }
-
         is ResultState.Success -> {
             isLoading = false
             val success = (state as ResultState.Success).success
@@ -66,9 +64,12 @@ fun HomeScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
+            
             score = (0..100).random()
             isAnimating = true
+            
         }) {
+            
             Text("Generate Score")
         }
     }
