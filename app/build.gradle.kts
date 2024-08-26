@@ -31,6 +31,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -50,6 +51,7 @@ android {
         }
     }
 }
+
 
 dependencies {
 
@@ -79,7 +81,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.3")
     // Room
     val room_version = "2.6.1"
-
     implementation("androidx.room:room-runtime:$room_version")
     kapt ("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
