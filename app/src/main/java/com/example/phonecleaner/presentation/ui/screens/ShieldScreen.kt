@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-
 @Composable
 fun AnimatedShield(
     score: Int,
@@ -117,6 +116,7 @@ fun ShieldView(
             .shadow(elevation = 8.dp, shape = shieldShape),
         contentAlignment = Alignment.Center
     ) {
+        
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "$score",
@@ -170,7 +170,6 @@ fun AnimatingText(
             .horizontalScroll(scrollState, reverseScrolling = false),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = text,
             color = Color(0xFF008000),
