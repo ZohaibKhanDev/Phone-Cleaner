@@ -159,7 +159,7 @@ fun AnimatingText(
             scrollState.scrollTo(0)
             scrollState.animateScrollTo(
                 scrollState.maxValue,
-                animationSpec = tween(durationMillis = 3000, easing = LinearEasing)
+                animationSpec = tween(durationMillis = 6000, easing = LinearEasing)
             )
         }
     }
