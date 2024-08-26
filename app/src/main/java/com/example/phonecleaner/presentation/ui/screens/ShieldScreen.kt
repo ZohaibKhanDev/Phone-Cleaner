@@ -1,125 +1,188 @@
 package com.example.phonecleaner.presentation.ui.screens
 
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 
 @Composable
-fun ShieldWithAnimation() {
-    var targetNumber by remember { mutableStateOf(0) }
-    val animatedNumber by animateIntAsState(
-        targetValue = targetNumber,
-        animationSpec = tween(durationMillis = 2000)
+fun AnimatedShield(
+    score: Int,
+    isAnimating: Boolean,
+    animationFinished: () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition()
+    val animatedProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
     )
 
-    var textOffset by remember { mutableStateOf(0f) }
 
+    val waterAnimationValue by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
 
-    LaunchedEffect(Unit) {
-        targetNumber = 98
-        while (true) {
-            delay(30)
-            textOffset += 2f
-            if (textOffset > 200f) textOffset = 0f
+    val targetScore = if (isAnimating) score else 0
+    val animatedScore by animateIntAsState(
+        targetValue = targetScore,
+        animationSpec = tween(durationMillis = 500)
+    ) {
+        if (targetScore == score) {
+            animationFinished()
         }
     }
+    ShieldView(
+        score = animatedScore,
+        animatedProgress = animatedProgress,
+        waterAnimationValue = waterAnimationValue
+    )
+}
 
-    Column(
+@Composable
+fun ShieldView(
+    score: Int,
+    animatedProgress: Float,
+    waterAnimationValue: Float
+) {
+    val shieldShape = GenericShape { size: Size, layoutDirection ->
+        val width = size.width
+        val height = size.height
+        val curveSize = width * 0.2f + waterAnimationValue
+
+        moveTo(width / 2, 0f)
+        cubicTo(
+            x1 = width - curveSize, y1 = 0f,
+            x2 = width, y2 = curveSize,
+            x3 = width, y3 = height / 2
+        )
+        cubicTo(
+            x1 = width, y1 = height - curveSize,
+            x2 = width - curveSize, y2 = height,
+            x3 = width / 2, y3 = height
+        )
+        cubicTo(
+            x1 = curveSize, y1 = height,
+            x2 = 0f, y2 = height - curveSize,
+            x3 = 0f, y3 = height / 2
+        )
+        cubicTo(
+            x1 = 0f, y1 = curveSize,
+            x2 = curveSize, y2 = 0f,
+            x3 = width / 2, y3 = 0f
+        )
+        close()
+    }
+
+    Box(
         modifier = Modifier
-            .fillMaxSize()
-            .drawBehind {
-                drawCircle(
-                    color = Color(0xFF00FF00).copy(alpha = 0.2f),
-                    radius = size.width / 3,
-                    center = center
+            .size(200.dp)
+            .clip(shieldShape)
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFFE0FFFF),
+                        Color(0xFF90EE90)
+                    ),
+                    start = Offset.Zero,
+                    end = Offset(0f, Float.POSITIVE_INFINITY)
                 )
-            },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            )
+            .shadow(elevation = 8.dp, shape = shieldShape),
+        contentAlignment = Alignment.Center
     ) {
-        ShieldShape {
-            BasicText(
-                text = animatedNumber.toString(),
-                style = TextStyle(fontSize = 48.sp, color = Color.White),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(8.dp)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "$score",
+                color = Color(0xFF008000),
+                fontSize = 48.sp
             )
 
+            Spacer(modifier = Modifier.height(4.dp))
 
-            BasicText(
-                text = "Your system is in good    Your system is in good    ",
-                style = TextStyle(fontSize = 16.sp, color = Color.Gray),
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(x = -textOffset.dp)
-                    .padding(horizontal = 8.dp)
-            )
+            AnimatingText(text = " Your system is in good ", fontSize = 14.sp)
         }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.3f * animatedProgress),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
     }
 }
 
 @Composable
-fun ShieldShape(drawContent: @Composable BoxScope.() -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(150.dp)
-            .drawBehind {
-                val width = size.width
-                val height = size.height
+fun AnimatingText(
+    text: String,
+    fontSize: TextUnit,
+    modifier: Modifier = Modifier
+) {
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
 
 
-                val shieldPath = Path().apply {
-                    moveTo(width * 0.5f, 0f)
-                    lineTo(width, height * 0.25f)
-                    lineTo(width, height * 0.75f)
-                    lineTo(width * 0.5f, height)
-                    lineTo(0f, height * 0.75f)
-                    lineTo(0f, height * 0.25f)
-                    close()
-                }
+    LaunchedEffect(key1 = text) {
+        while (true) {
+            scrollState.scrollTo(0)
+            scrollState.animateScrollTo(
+                scrollState.maxValue,
+                animationSpec = tween(durationMillis = 3000, easing = LinearEasing)
+            )
+        }
+    }
 
-
-                drawPath(
-                    path = shieldPath,
-                    color = Color(0xFFB2FF59),
-                    style = Stroke(width = 4.dp.toPx())
-                )
-
-
-                drawRoundRect(
-                    color = Color(0xFFE0F7FA).copy(alpha = 0.5f),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(30f, 30f),
-                    size = size
-                )
-            },
-        contentAlignment = Alignment.Center
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(scrollState, reverseScrolling = false),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        drawContent()
+
+        Text(
+            text = text,
+            color = Color(0xFF008000),
+            fontSize = fontSize,
+            modifier = Modifier.padding(end = 100.dp)
+        )
+
+        Text(
+            text = text,
+            color = Color(0xFF008000),
+            fontSize = fontSize,
+            modifier = Modifier.padding(end = 100.dp)
+        )
     }
 }
