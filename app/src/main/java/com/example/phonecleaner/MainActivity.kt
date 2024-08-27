@@ -29,9 +29,11 @@ class MainActivity : ComponentActivity() {
             modules(appModule)
         }
         setContent {
+
             PhoneCleanerTheme {
                 HomeScreen()
-            }
+           
+ }
         }
     }
 }
